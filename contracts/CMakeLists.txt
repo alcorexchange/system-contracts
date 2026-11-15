@@ -10,6 +10,11 @@ option(SYSTEM_BLOCKCHAIN_PARAMETERS
 
 find_package(cdt)
 
+# alcor-chain: 200 ms blocks and the 2025-01-01 block timestamp epoch. Our CDT fork (alcor-chain/forks/cdt)
+# reads these; eosio.system static_asserts that it got them, so a stock CDT build fails instead of
+# silently counting 500 ms slots.
+add_compile_definitions(EOSIO_BLOCK_INTERVAL_MS=200 EOSIO_BLOCK_TIMESTAMP_EPOCH_MS=1735689600000ll)
+
 set(CDT_VERSION_MIN "3.0")
 set(CDT_VERSION_SOFT_MAX "4.0")
 # set(CDT_VERSION_HARD_MAX "")
