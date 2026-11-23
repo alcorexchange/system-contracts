@@ -1610,6 +1610,11 @@ namespace eosiosystem {
           * these first. A producer policy, not a consensus rule; anyone can check the order in blocks. Meant for
           * order cancellations. The new list takes effect from the next block.
           *
+          * The node checks only a transaction's own actions, not what they trigger. So a listed action must not
+          * run user code: no require_recipient to user accounts and no inline action or transfer to them (a cancel
+          * credits an internal balance; the user withdraws later). Otherwise a user contract notified by a cancel
+          * could send a trade that goes first with it. Review a contract for this before listing its action.
+          *
           * @param actions - sorted by (contract, action), no duplicates, at most `max_priority_actions`;
           *                  an empty list removes all priority actions.
           */
