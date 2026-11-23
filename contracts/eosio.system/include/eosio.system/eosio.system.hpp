@@ -450,9 +450,9 @@ namespace eosiosystem {
    };
 
    /**
-    * The priority action list (protocol feature PRIORITY_ACTIONS).
+    * The priority action list.
     *
-    * The node reads this row itself at the start of every block, so its layout is part of consensus:
+    * Block producers' nodes read this row themselves, so its layout is fixed:
     * table `prioacts`, scope `eosio`, primary key `prioacts`, value = the serialized `actions` vector.
     */
    struct [[eosio::table("prioacts"), eosio::contract("eosio.system")]] priority_actions {
@@ -1605,10 +1605,10 @@ namespace eosiosystem {
          /**
           * Set priority actions.
           *
-          * A transaction whose every action is in this list goes into a block before all other transactions
-          * (protocol feature PRIORITY_ACTIONS): the block producer applies it first, and a block with such a
-          * transaction after a regular one is invalid. Meant for order cancellations. The new list takes
-          * effect from the next block.
+          * A transaction whose every action is in this list goes into a block before all other transactions:
+          * while the list is not empty, the block producer applies each block's transactions in one batch,
+          * these first. A producer policy, not a consensus rule; anyone can check the order in blocks. Meant for
+          * order cancellations. The new list takes effect from the next block.
           *
           * @param actions - sorted by (contract, action), no duplicates, at most `max_priority_actions`;
           *                  an empty list removes all priority actions.
