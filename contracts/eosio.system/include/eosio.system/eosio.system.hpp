@@ -15,6 +15,7 @@
 #include <deque>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <unordered_set>
 
@@ -433,6 +434,37 @@ namespace eosiosystem {
    typedef eosio::singleton< "global3"_n, eosio_global_state3 > global_state3_singleton;
 
    typedef eosio::singleton< "global4"_n, eosio_global_state4 > global_state4_singleton;
+
+   /**
+    * A (contract, action) pair whose transactions go first in a block.
+    */
+   struct priority_action {
+      name contract;
+      name action;
+
+      friend bool operator<( const priority_action& a, const priority_action& b ) {
+         return std::tie( a.contract, a.action ) < std::tie( b.contract, b.action );
+      }
+
+      EOSLIB_SERIALIZE( priority_action, (contract)(action) )
+   };
+
+   /**
+    * The priority action list (protocol feature PRIORITY_ACTIONS).
+    *
+    * The node reads this row itself at the start of every block, so its layout is part of consensus:
+    * table `prioacts`, scope `eosio`, primary key `prioacts`, value = the serialized `actions` vector.
+    */
+   struct [[eosio::table("prioacts"), eosio::contract("eosio.system")]] priority_actions {
+      std::vector<priority_action> actions;
+
+      EOSLIB_SERIALIZE( priority_actions, (actions) )
+   };
+
+   typedef eosio::singleton< "prioacts"_n, priority_actions > priority_actions_singleton;
+
+   /// The node ignores a longer list, keep in sync with `config::max_priority_actions` in the node.
+   static constexpr uint32_t max_priority_actions = 64;
 
    struct [[eosio::table, eosio::contract("eosio.system")]] user_resources {
       name          owner;
@@ -1570,6 +1602,20 @@ namespace eosiosystem {
          [[eosio::action]]
          void setparams( const blockchain_parameters_t& params );
 
+         /**
+          * Set priority actions.
+          *
+          * A transaction whose every action is in this list goes into a block before all other transactions
+          * (protocol feature PRIORITY_ACTIONS): the block producer applies it first, and a block with such a
+          * transaction after a regular one is invalid. Meant for order cancellations. The new list takes
+          * effect from the next block.
+          *
+          * @param actions - sorted by (contract, action), no duplicates, at most `max_priority_actions`;
+          *                  an empty list removes all priority actions.
+          */
+         [[eosio::action]]
+         void setprioacts( const std::vector<priority_action>& actions );
+
 #ifdef SYSTEM_CONFIGURABLE_WASM_LIMITS
          /**
           * Sets the WebAssembly limits.  Valid parameters are "low",
@@ -1815,6 +1861,7 @@ namespace eosiosystem {
          using setpriv_action = eosio::action_wrapper<"setpriv"_n, &system_contract::setpriv>;
          using setalimits_action = eosio::action_wrapper<"setalimits"_n, &system_contract::setalimits>;
          using setparams_action = eosio::action_wrapper<"setparams"_n, &system_contract::setparams>;
+         using setprioacts_action = eosio::action_wrapper<"setprioacts"_n, &system_contract::setprioacts>;
          using setinflation_action = eosio::action_wrapper<"setinflation"_n, &system_contract::setinflation>;
          using setpayfactor_action = eosio::action_wrapper<"setpayfactor"_n, &system_contract::setpayfactor>;
          using cfgpowerup_action = eosio::action_wrapper<"cfgpowerup"_n, &system_contract::cfgpowerup>;
