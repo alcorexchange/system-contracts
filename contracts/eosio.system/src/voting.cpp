@@ -31,6 +31,11 @@ namespace eosiosystem {
       eosio::public_key producer_key{};
 
       std::visit( [&](auto&& auth ) {
+         // Alcor Chain: block signing keys are K1, R1 or WA (variant 0-2). The chain refuses EM (3) and ED (4) in a
+         // producer schedule, so a producer registered with one would make every schedule update fail in onblock.
+         for( const auto& k : auth.keys ) {
+            check( k.key.index() < 3, "block signing key must be K1, R1 or WA (EM and ED keys cannot sign blocks)" );
+         }
          if( auth.keys.size() == 1 ) {
             // if the producer_authority consists of a single key, use that key in the legacy producer_key field
             producer_key = auth.keys[0].key;
