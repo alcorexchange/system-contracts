@@ -151,9 +151,13 @@ namespace eosiosystem {
          return;
       }
 
+      // Sort by location, so that each producer hands over to a neighbor on the map. location is whatever number a
+      // producer sets in regproducer; the convention is round((longitude + 180) * 100), 0..36000, west to east.
+      // Equal locations fall back to the name, so the order never depends on the vote order.
       std::sort( top_producers.begin(), top_producers.end(), []( const value_type& lhs, const value_type& rhs ) {
-         return lhs.first.producer_name < rhs.first.producer_name; // sort by producer name
-         // return lhs.second < rhs.second; // sort by location
+         if( lhs.second != rhs.second )
+            return lhs.second < rhs.second;
+         return lhs.first.producer_name < rhs.first.producer_name;
       } );
 
       std::vector<eosio::producer_authority> producers;

@@ -1427,7 +1427,8 @@ namespace eosiosystem {
           * @param producer - account registering to be a producer candidate,
           * @param producer_key - the public key of the block producer, this is the key used by block producer to sign blocks,
           * @param url - the url of the block producer, normally the url of the block producer presentation website,
-          * @param location - is the country code as defined in the ISO 3166, https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+          * @param location - orders the producer schedule, lowest first, so that each producer hands over to a neighbor;
+          *    the convention is round((longitude + 180) * 100), 0..36000, west to east,
           *
           * @pre Producer to register is an account
           * @pre Authority of producer to register
@@ -1443,7 +1444,8 @@ namespace eosiosystem {
           * @param producer - account registering to be a producer candidate,
           * @param producer_authority - the weighted threshold multisig block signing authority of the block producer used to sign blocks,
           * @param url - the url of the block producer, normally the url of the block producer presentation website,
-          * @param location - is the country code as defined in the ISO 3166, https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+          * @param location - orders the producer schedule, lowest first, so that each producer hands over to a neighbor;
+          *    the convention is round((longitude + 180) * 100), 0..36000, west to east,
           *
           * @pre Producer to register is an account
           * @pre Authority of producer to register
